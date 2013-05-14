@@ -1,6 +1,6 @@
 #!/bin/bash
 #This script checks for completed torrents and removes them
-
+##TODO: Configuration on external file ;)
 ###Configuration Section###
 tr_auth='<username>:<password>'
 ###End of configuration###
