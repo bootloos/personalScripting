@@ -1,31 +1,26 @@
 #!/bin/bash
-
-# script to check for complete torrents in transmission folder, then stop and remove them
+#This script checks for completed torrents and removes them
 
 ###Configuration Section###
-# Authentication "username:password":
 tr_auth='<username>:<password>'
-###End of Configuration###
+###End of configuration###
 
-#Transmission Autentication
+###Setting Variables###
 tr_auth="--auth=$tr_auth"
+TORRENTLIST=`transmission-remote $tr_auth --list | sed -e '1d;$d;s/^ *//' | cut --only-delimited -d" " -f1`
+###End of variables###
 
-# use transmission-remote to get torrent list from transmission-remote list using sed to delete first / last line of output, and remove leading spaces
-TORRENTLIST=`transmission-remote --list | sed -e '1d;$d;s/^ *//' | cut --only-delimited --delimiter= " " --fields=1`
-
+###MAIN###
 for TORRENTID in $TORRENTLIST
 do
-  logger -is -t $0 "Operations on torrent ID $TORRENTID starting."
-	transmission-remote $tr_auth --info $TORRENTID
-	DL_COMPLETED=`transmission-remote $tr_auth --torrent $TORRENTID --info | grep "Percent Done: 100%"`
-	STATE_STOPPED=`transmission-remote $tr_auth --torrent $TORRENTID --info | grep "State: Stopped\|Finished\|Idle"`
-	# if the torrent is "Stopped", "Finished", or "Idle" after downloading then remove the torrent from Transmission
-	if [ "$DL_COMPLETED" != "" ] && [ "$STATE_STOPPED" != "" ]; then
-	logger -is -t $0 "Torrent #$TORRENTID is completed."
-	logger -is -t $0 "Removing torrent from list."
-	#transmission-remote $tr_auth --torrent $TORRENTID --remove-and-delete
+	TORRENTNAME=`transmission-remote $tr_auth --torrent $TORRENTID --info| sed -e 's/^ *//' | grep "^Name:"|cut -d: -f2`	
+	DL_COMPLETED=`transmission-remote $tr_auth --torrent $TORRENTID --info | grep "Percent Done: 100%"|cut -d: -f2`
+	STATE_STOPPED=`transmission-remote $tr_auth --torrent $TORRENTID --info | grep "State: Finished"|cut -d: -f2`
+	#if the torrent is Finished, remove it from Transmission
+	if test -n "$DL_COMPLETED" && test -n "$STATE_STOPPED"; then
+		logger -is -t $0 "Torrent $TORRENTNAME (#$TORRENTID) is completed, removing"
+		transmission-remote $tr_auth --torrent $TORRENTID --remove_and_delete
 	else
-	logger -is -t $0 "Torrent #$TORRENTID is not completed. Ignoring."
+		logger -is -t $0 "Torrent $TORRENTNAME (#$TORRENTID) is not completed, ignoring"
 	fi
-	logger -is -t $0 "Operations on torrent ID $TORRENTID completed."
 done
