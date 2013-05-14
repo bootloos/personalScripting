@@ -1,8 +1,20 @@
 #!/bin/bash
 #This script checks for completed torrents and removes them
-##TODO: Configuration on external file ;)
 ###Configuration Section###
-tr_auth='<username>:<password>'
+conf="/etc/autoborrado.conf"
+if find -r $conf; then
+	tr_auth=`cat $conf | grep -v '#'`
+else 
+	if find -e $conf; then
+		logger -is -t $0 "Unable to read from $conf. Exiting"
+		exit 1
+	else
+		logger -is -t $0 "$conf does not exist. creating"
+		touch  $conf
+		#fill the file
+	fi
+
+fi
 ###End of configuration###
 
 ###Setting Variables###
