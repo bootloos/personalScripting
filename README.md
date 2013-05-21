@@ -4,4 +4,4 @@ I've created this JUST for my own use. You can, of course, use any of my scripts
 
 USE AT YOUR OWN RISK!!
 
-This is just because I can't guarantee support, suggestions will be welcome ;)
+This is just because I can't guarantee support, suggestions will be welcomed ;)
